@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LifeSync AI</title>
+</head>
+
+<body>
+
+<h1>LifeSync AI</h1>
+
+<!-- LOGIN -->
+<div id="loginPage">
+<h2>Login</h2>
+
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+</div>
+
+<!-- TASK PAGE -->
+<div id="taskPage" style="display:none;">
+
+<h2>Your Tasks</h2>
+
+<input id="taskInput" placeholder="Task">
+<input id="dateInput" type="date">
+
+<button onclick="addTask()">Add Task</button>
+
+<ul id="taskList"></ul>
+
+</div>
+
+<script>
+
+const API = "https://lifesync-ai-pkh9.onrender.com"
+
+async function login(){
+
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
+
+const formData = new URLSearchParams()
+formData.append("username", email)
+formData.append("password", password)
+
+const response = await fetch(API + "/login",{
+method:"POST",
+body: formData
+})
+
+const data = await response.json()
+
+localStorage.setItem("token",data.access_token)
+
+document.getElementById("loginPage").style.display="none"
+document.getElementById("taskPage").style.display="block"
+
+showTasks()
+}
+
+async function addTask(){
+
+const title = document.getElementById("taskInput").value
+const date = document.getElementById("dateInput").value
+const token = localStorage.getItem("token")
+
+await fetch(API + "/tasks",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json",
+"Authorization":"Bearer " + token
+},
+
+body: JSON.stringify({
+title:title,
+due_date:date
+})
+
+})
+
+showTasks()
+
+}
+
+async function showTasks(){
+
+const token = localStorage.getItem("token")
+
+const response = await fetch(API + "/tasks",{
+
+headers:{
+"Authorization":"Bearer " + token
+}
+
+})
+
+const data = await response.json()
+
+const taskList = document.getElementById("taskList")
+
+taskList.innerHTML=""
+
+data.tasks.forEach(task=>{
+
+const li=document.createElement("li")
+
+li.textContent = task.title + " - " + task.due_date
+
+taskList.appendChild(li)
+
+})
+
+}
+
+</script>
+
+</body>
+</html>
